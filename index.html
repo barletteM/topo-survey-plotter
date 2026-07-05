@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Topo Survey Plotter</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Topo Survey Plotter</h1>
+      <p>Import survey CSV points, classify field codes, and plot point symbols or connected linework.</p>
+    </div>
+    <div class="actions">
+      <label class="file-button">
+        <input id="fileInput" type="file" accept=".csv,.txt">
+        Load CSV
+      </label>
+      <button id="sampleBtn" type="button">Load Sample</button>
+      <button id="exportSvgBtn" type="button">Export SVG</button>
+      <button id="exportDxfBtn" type="button">Export DXF</button>
+      <button id="exportCsvBtn" type="button">Export Clean CSV</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Code Library</h2>
+          <button id="resetCodesBtn" type="button" title="Restore built-in code list">Reset</button>
+        </div>
+        <form id="codeForm" class="code-form">
+          <input id="codeInput" required placeholder="Code e.g. RE1">
+          <select id="typeInput" required>
+            <option value="point">Point</option>
+            <option value="line">Line</option>
+            <option value="closed">Closed Line</option>
+            <option value="label">Label Only</option>
+          </select>
+          <input id="layerInput" required placeholder="Layer">
+          <input id="descInput" placeholder="Description">
+          <button type="submit">Add / Update</button>
+        </form>
+        <div class="hint">Codes can be exact, like <b>BM</b>, or prefixes, like <b>RE*</b> for RE1, RE2, RE3.</div>
+        <div id="codeList" class="code-list"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Plot Settings</h2>
+        <label class="setting">
+          <span>Code matching</span>
+          <select id="matchMode">
+            <option value="prefix">Exact + prefix rules</option>
+            <option value="exact">Exact codes only</option>
+          </select>
+        </label>
+        <label class="setting">
+          <span>Line labels</span>
+          <select id="lineLabelMode">
+            <option value="start">Show at line start</option>
+            <option value="all">Show all vertices</option>
+            <option value="none">Hide line labels</option>
+          </select>
+        </label>
+        <label class="setting inline">
+          <input id="showPointNumbers" type="checkbox" checked>
+          <span>Show point numbers</span>
+        </label>
+        <label class="setting inline">
+          <input id="showElevations" type="checkbox" checked>
+          <span>Show elevations</span>
+        </label>
+        <label class="setting inline">
+          <input id="closePolygons" type="checkbox" checked>
+          <span>Close closed-line codes</span>
+        </label>
+        <label class="setting inline">
+          <input id="invertDxfCoords" type="checkbox" checked>
+          <span>Invert DXF coordinates</span>
+        </label>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Plot Instructions</h2>
+          <button id="applyInstructionsBtn" type="button">Apply</button>
+        </div>
+        <textarea id="instructionInput" class="instruction-input" spellcheck="false" placeholder="AREA EP LAYER TOPO-BOUNDARY&#10;SYMBOL BH BOREHOLE LAYER TOPO-BOREHOLE"></textarea>
+        <div class="hint">
+          Use one instruction per line. Examples: <b>AREA EP</b> closes all EP points as a boundary area. <b>SYMBOL BH BOREHOLE</b> plots BH points with a borehole symbol.
+        </div>
+        <div id="instructionStatus" class="instruction-status"></div>
+      </section>
+
+      <section class="panel">
+        <h2>CSV Format</h2>
+        <p class="small-copy">Accepted columns: PointNo, Easting, Northing, Elevation, Code. Headerless files in that order also work.</p>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <div class="stats-row">
+        <div><b id="totalPoints">0</b><span>Total points</span></div>
+        <div><b id="pointCount">0</b><span>Point plots</span></div>
+        <div><b id="lineCount">0</b><span>Line groups</span></div>
+        <div><b id="unknownCount">0</b><span>Unknown codes</span></div>
+      </div>
+
+      <section class="plot-panel">
+        <div class="plot-toolbar">
+          <div>
+            <h2>Survey Plot</h2>
+            <p id="plotSubtitle">Load a CSV or sample to begin.</p>
+          </div>
+          <div class="view-buttons">
+            <button id="zoomFitBtn" type="button">Fit</button>
+            <button id="toggleGridBtn" type="button">Grid</button>
+          </div>
+        </div>
+        <div id="plotWrap" class="plot-wrap">
+          <svg id="plotSvg" role="img" aria-label="Topographical survey plot"></svg>
+        </div>
+      </section>
+
+      <div class="bottom-grid">
+        <section class="panel">
+          <h2>Plot Log</h2>
+          <div id="plotLog" class="log"></div>
+        </section>
+        <section class="panel">
+          <h2>Loaded Points</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Pt</th>
+                  <th>Easting</th>
+                  <th>Northing</th>
+                  <th>RL</th>
+                  <th>Code</th>
+                  <th>Plots As</th>
+                </tr>
+              </thead>
+              <tbody id="pointTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
