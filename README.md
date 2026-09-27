@@ -1,55 +1,105 @@
-# Topo Survey Plotter
+# TopoMapper
 
-A local browser app for plotting topographical survey CSV files.
+TopoMapper is a Streamlit desktop/web application for generating professional topographical survey drawings from survey point files.
 
-Open `index.html` in a browser, then load a CSV with this format:
+It imports PENZD, fieldbook CSV, South GPS, Trimble, CHCNAV, Leica, and generic coordinate CSV/XLS/XLSX data, then exports AutoCAD-ready DXF and reporting files.
 
-```text
-PointNo,Easting,Northing,Elevation,Code
-```
+## Main Features
 
-Headerless CSV files in the same order are accepted.
+- Import `.csv`, `.txt`, `.xls`, and `.xlsx` point files.
+- Auto-detect Point Number, Easting, Northing, Elevation, Description/Code, and Date/Time columns.
+- Filter all points, latest date in file, current-day points, or yesterday's points.
+- Preserve original survey coordinates for setting-out and reports.
+- Apply plotting-only coordinate transforms: Easting x -1, Northing x -1, and positive Eastings.
+- Generate AutoCAD R12 DXF drawing files in metre drawing units.
+- Match preview colours in DXF layers, including dashed PF/CF lines and centre-style RC lines.
+- Draw dedicated CAD symbols for BH/EBH, BM/REF, palm trees, street lights, TMH, EB, MH, and poles.
+- Cluster nearby TMH and EB observations into one labelled feature symbol.
+- Close and shade the two largest EF/PF boundaries and label their areas in hectares.
+- Join linework by feature code while breaking large gaps and ignoring isolated line points.
+- Add north arrow, symbol legend, scale bar, full coordinate grid with corner/midpoint crosses, title block, border, and company name.
+- Export Civil 3D PENZD CSV, cleaned coordinate CSV, Excel point schedule, feature summary, and ZIP package.
 
-## What it does
-
-- Uses a built-in topo code library based on the existing V3.2 workflow.
-- Lets you add or update field codes.
-- Lets you define whether a code plots as a point, line, closed line, or label.
-- Uses topo symbology for common features such as palm trees, street lights, telecom manholes, and electrical boxes.
-- Clusters nearby `TMH` and `EB` shots into one plotted symbol, useful when four cover/corner shots describe one feature.
-- Plots `BH` and `EBH` as boreholes, `BM`/`REF` as benchmark/reference marks, and `RC` as road centre linework.
-- Uses colour-coded fence layers for `EF` existing fence, `PF` proposed fence, and `CF` corrected fence.
-- Draws a north arrow, legend, and grid crossing marks.
-- Calculates and labels the two biggest `EF`/`PF` closed fence areas in hectares.
-- Exports DXF with coordinate inversion enabled by default for the requested AutoCAD orientation.
-- DXF export includes a layer table with AutoCAD colour indexes, CAD-drawn symbols, legend, north arrow, grid crosses, and area labels.
-- Shows a plot log so you can see exactly which codes produced points and which produced linework.
-- Exports SVG, DXF, and a cleaned CSV.
-
-## Prefix Codes
-
-Use an asterisk for code families. For example:
-
-- `RE*` plots `RE1`, `RE2`, `RE3` as road edge lines.
-- `BC*` plots `BC1`, `BC2` as closed building outlines.
-- `FNC*` plots numbered fence codes as linework.
-
-Your code library is saved in the browser, and the Reset button restores the built-in list.
-
-## Plot Instructions
-
-The app also has a Plot Instructions panel for job-specific plotting rules. Use one instruction per line.
+Company name used in drawings:
 
 ```text
-AREA EP LAYER TOPO-BOUNDARY
-SYMBOL BH BOREHOLE LAYER TOPO-BOREHOLE
+Kesheshiwe Engineering Surveyors CC
 ```
 
-Supported instructions:
+## Default Feature Behaviour
 
-- `AREA EP` closes all points with code `EP` into a plotted boundary area.
-- `AREA EP*` closes all points where the code starts with `EP`.
-- `SYMBOL BH BOREHOLE` plots `BH` points with a borehole symbol.
-- Add `LAYER layer-name` to control the export layer.
+Linework codes:
 
-Instructions are saved in the browser. They are intended for plotting rules that change from job to job without editing the app code.
+```text
+EF, PF, CF, RC, RE, ETW, CL, EP, KERB, SWI, SWO, WALL, FENCE, BUILDING
+```
+
+Symbol/point codes:
+
+```text
+BM, REF, BH, EBH, MH, ICV, FH, TREE, PALMTREE, SL, POLE, TP, EB, TMH
+```
+
+Unknown codes are treated as spot levels and receive elevation labels. You can edit code type, layer, and preview colour in the **Feature Code Settings** page.
+
+## Install
+
+Python 3.11+ is recommended.
+
+```powershell
+pip install -r requirements.txt
+```
+
+## Run
+
+```powershell
+streamlit run app.py
+```
+
+If you are using the bundled Codex Python runtime in this workspace, this command also works:
+
+```powershell
+& 'C:\Users\User\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m streamlit run app.py
+```
+
+Then open the local URL shown by Streamlit, usually:
+
+```text
+http://localhost:8501
+```
+
+## Workflow
+
+1. **Upload Survey File**: Load CSV, TXT, XLS, or XLSX data.
+2. **Column Mapping / Auto-detect**: Confirm or adjust detected columns.
+3. **Filtering by Date**: Select all, latest, current-day, or yesterday's points.
+4. **Coordinate Transformation**: Choose plotting-only sign inversion options.
+5. **Feature Code Settings**: Adjust line/symbol/spot behaviour, colours, and layers.
+6. **Drawing Preview**: Inspect linework, symbols, labels, grid, and map elements.
+7. **Export Files**: Download DXF, CSV, Excel, summary, or a complete ZIP package.
+
+## Coordinate Safety
+
+TopoMapper never overwrites original coordinates.
+
+- `Original Easting` and `Original Northing` are used for setting-out data and Civil 3D PENZD export.
+- `Plot Easting` and `Plot Northing` are used only for preview and DXF drawing generation.
+- Sign inversion and positive-Easting options affect plotting coordinates only.
+
+## Sample Data
+
+A sample PENZD-style file is included:
+
+```text
+sample_data/sample_penzd.csv
+```
+
+Generated files can be saved in:
+
+```text
+outputs/
+```
+
+## Notes
+
+AutoCAD R12 does not formally store modern `$INSUNITS` unit metadata. TopoMapper writes coordinates directly in metre drawing units and labels the title block as metres so AutoCAD/Civil 3D users can insert/open the file at 1 drawing unit = 1 metre.
